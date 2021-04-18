@@ -1,45 +1,58 @@
-import React, { useEffect, useState } from "react";
-import "./App.css"
+import React, { useState } from "react";
+import "./App.css";
+import DynamicForm from "./components/DynamicForm";
+import TextField from "./components/TextField";
+import NumberField from "./components/NumberField";
+import EmailField from "./components/EmailField";
 
 function App() {
-  const [inputList, setInputList] = useState([{ fName: "", age: "",email:"" }]);
-  const [validForm, setValidForm] = useState(false);
-  const [error,setError] = useState("");
+  const [inputList, setInputList] = useState([
+    { fName: "", age: "", email: "" },
+  ]);
 
-  useEffect(() => {
-    if(validForm==true){
-      setError("Everything valid")
-      setTimeout(()=>{
-        alert(JSON.stringify(inputList))
-      },500)
-      }
-    else{
-      setError("Please follow Validations")
-    }
-  },[validForm]);
+  const [error, setError] = useState("");
+  const [validation, setValidation] = useState([
+    { textFieldValid: false, numberFieldValid: false, emailFieldValid: false },
+  ]);
 
   const handleInputChange = (e, index) => {
+    console.log("handle", e.target.name);
     const { name, value } = e.target;
     const list = [...inputList];
     list[index][name] = value;
     setInputList(list);
   };
 
-
-
   const handleAddClick = () => {
-    setValidForm(false);
-    setInputList([...inputList, { fName: "", age: "",email:"" }]);
+    if (
+      validation.textFieldValid &&
+      validation.numberFieldValid &&
+      validation.emailFieldValid
+    ) {
+      setInputList([...inputList, { fName: "", age: "", email: "" }]);
+      setValidation({
+        textFieldValid: false,
+        numberFieldValid: false,
+        emailFieldValid: false,
+      });
+    } else {
+      setError("Please fill All fields right!!");
+    }
   };
 
   const handleSubmit = () => {
-    setValidForm(true);
-    inputList.map((child,index)=> {
-      if ( child.fName.length == 0 || child.age.length ==0 || child.age >100  || child.email.length == 0){
-      setValidForm(false);
-      };
-    })
-  }
+    console.log("validation", validation);
+
+    if (
+      validation.textFieldValid &&
+      validation.numberFieldValid &&
+      validation.emailFieldValid
+    ) {
+      alert(JSON.stringify(inputList));
+    } else {
+      setError("Please fill All fields right!!");
+    }
+  };
 
   return (
     <div className="App">
@@ -47,39 +60,44 @@ function App() {
       {inputList.map((x, i) => {
         return (
           <div key={i}>
-            <label>Name</label>
-            <input
-              className="input"
-              name="fName"
-              placeholder="Required"
-              value={x.fName}
-              onChange={e => handleInputChange(e, i)}
-            />
-            <label>Age</label>
-            <input
-              className="input"
-              name="age"
-              placeholder="max 100"
-              value={x.age}
-              onChange={e => handleInputChange(e, i)}
-            />
-            <label>Email</label>
-            <input
-              className="input"
-              name="email"
-              type="email"
-              placeholder="Required"
-              value={x.email}
-              onChange={e => handleInputChange(e, i)}
-            />
-            <div >
-              {inputList.length - 1 === i && <button className="button" onClick={handleAddClick}>Add</button>}
-            </div>
+            <DynamicForm
+              onSubmit={handleSubmit}
+              inputList={inputList}
+              index={i}
+            >
+              <TextField
+                validation={validation}
+                valid={setValidation}
+                index={i}
+                value={x.fname}
+                handleInputChange={handleInputChange}
+              />
+              <NumberField
+                validation={validation}
+                valid={setValidation}
+                index={i}
+                value={x.age}
+                handleInputChange={handleInputChange}
+              />
+              <EmailField
+                validation={validation}
+                valid={setValidation}
+                index={i}
+                value={x.email}
+                handleInputChange={handleInputChange}
+              />
+              <div>
+                {inputList.length - 1 === i && (
+                  <button className="button" onClick={handleAddClick}>
+                    Add
+                  </button>
+                )}
+              </div>
+            </DynamicForm>
           </div>
         );
       })}
-      <button className="button"
-       onClick={handleSubmit}>Submit</button>
+
       <div>{error}</div>
     </div>
   );
